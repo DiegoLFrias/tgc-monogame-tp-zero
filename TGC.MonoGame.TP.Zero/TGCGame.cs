@@ -76,6 +76,7 @@ public class TGCGame : Game
         _city = new CityScene(Content, ContentFolder3D, ContentFolderEffects);
 
         // La carga de contenido debe ser realizada aca.
+        _carModel = Content.Load<Model>(ContentFolder3D + "scene/car");
 
         base.LoadContent();
     }
@@ -94,7 +95,21 @@ public class TGCGame : Game
             Exit();
         }
 
-        // La logica debe ir aca.
+        // Movimiento básico del auto
+        Vector3 movement = Vector3.Zero;
+        float speed = 10f * (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+        if (keyboardState.IsKeyDown(Keys.Up))
+            movement += Vector3.Forward * speed;
+        if (keyboardState.IsKeyDown(Keys.Down))
+            movement += Vector3.Backward * speed;
+        if (keyboardState.IsKeyDown(Keys.Left))
+            movement += Vector3.Left * speed;
+        if (keyboardState.IsKeyDown(Keys.Right))
+            movement += Vector3.Right * speed;
+
+        // Aplica el movimiento a la matriz de mundo del auto
+        _carWorld *= Matrix.CreateTranslation(movement);
 
         // Actualizo la camara, enviandole la matriz de mundo del auto.
         _followCamera.Update(gameTime, _carWorld);
@@ -115,7 +130,17 @@ public class TGCGame : Game
         _city.Draw(gameTime, _followCamera.View, _followCamera.Projection);
 
         // El dibujo del auto debe ir aca.
-
+        foreach (var mesh in _carModel.Meshes)
+        {
+            foreach (BasicEffect effect in mesh.Effects)
+            {
+                effect.EnableDefaultLighting();
+                effect.World = _carWorld;
+                effect.View = _followCamera.View;
+                effect.Projection = _followCamera.Projection;
+            }
+            mesh.Draw();
+        }
         base.Draw(gameTime);
     }
 
